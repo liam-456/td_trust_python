@@ -31,9 +31,9 @@ S_SIGNALLING_REFRESH_FINISHED = "SH"
 # Database Configuration (Update with your credentials)
 DB_CONFIG = {
     "host": "localhost",  # Change to your MySQL server
-    "user": "your_user",
-    "password": "your_password",
-    "database": "train_data"
+    "user": "liam",
+    "password": "password",
+    "database": "td_database"
 }
 
 # Function to create a MySQL connection
