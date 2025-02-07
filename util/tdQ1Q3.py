@@ -62,7 +62,7 @@ def insert_into_db(timestamp, message_type, area_id, description, from_berth, to
     if conn:
         cursor = conn.cursor()
         query = """
-        INSERT INTO td_messages (timestamp, message_type, area_id, description, from_berth, to_berth)
+        INSERT INTO td_messages_Q1_Q3 (timestamp, message_type, area_id, description, from_berth, to_berth)
         VALUES (%s, %s, %s, %s, %s, %s);
         """
         cursor.execute(query, (timestamp, message_type, area_id, description, from_berth, to_berth))
