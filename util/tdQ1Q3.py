@@ -2,40 +2,87 @@
 from datetime import datetime
 
 # Third party
+import mysql.connector
+from mysql.connector import Error
 from pytz import timezone
 
-TIMEZONE_LONDON: timezone = timezone("Europe/London")
+TIMEZONE_LONDON = timezone("Europe/London")
 
 # TD message types
+C_BERTH_STEP = "CA"
+C_BERTH_CANCEL = "CB"
+C_BERTH_INTERPOSE = "CC"
+C_HEARTBEAT = "CT"
 
-C_BERTH_STEP = "CA"       # Berth step      - description moves from "from" berth into "to", "from" berth is erased
-C_BERTH_CANCEL = "CB"     # Berth cancel    - description is erased from "from" berth
-C_BERTH_INTERPOSE = "CC"  # Berth interpose - description is inserted into the "to" berth, previous contents erased
-C_HEARTBEAT = "CT"        # Heartbeat       - sent periodically by a train describer
+S_SIGNALLING_UPDATE = "SF"
+S_SIGNALLING_REFRESH = "SG"
+S_SIGNALLING_REFRESH_FINISHED = "SH"
 
-S_SIGNALLING_UDPATE = "SF"            # Signalling update
-S_SIGNALLING_REFRESH = "SG"           # Signalling refresh
-S_SIGNALLING_REFRESH_FINISHED = "SH"  # Signalling refresh finished
+# Database Configuration (Update with your credentials)
+DB_CONFIG = {
+    "host": "localhost",  # Change to your MySQL server
+    "user": "your_user",
+    "password": "your_password",
+    "database": "train_data"
+}
 
+# Function to create a MySQL connection
+def create_connection():
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        if conn.is_connected():
+            return conn
+    except Error as e:
+        print(f"Error: {e}")
+    return None
 
-def print_td_frame(parsed_body):
-    # Each message in the queue is a JSON array
+# Function to create the table if it does not exist
+def create_table():
+    conn = create_connection()
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS td_messages (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            timestamp DATETIME,
+            message_type VARCHAR(2),
+            area_id VARCHAR(2),
+            description VARCHAR(10),
+            from_berth VARCHAR(10),
+            to_berth VARCHAR(10)
+        );
+        """)
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+# Function to insert data into the database
+def insert_into_db(timestamp, message_type, area_id, description, from_berth, to_berth):
+    conn = create_connection()
+    if conn:
+        cursor = conn.cursor()
+        query = """
+        INSERT INTO td_messages (timestamp, message_type, area_id, description, from_berth, to_berth)
+        VALUES (%s, %s, %s, %s, %s, %s);
+        """
+        cursor.execute(query, (timestamp, message_type, area_id, description, from_berth, to_berth))
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+# Function to process and export TD messages
+def process_td_messages(parsed_body):
     for outer_message in parsed_body:
-        # Each list element consists of a dict with a single entry - our real target - e.g. {"CA_MSG": {...}}
         message = list(outer_message.values())[0]
-
         message_type = message["msg_type"]
 
-        # For the sake of demonstration, we're only displaying C-class messages
         if message_type in [C_BERTH_STEP, C_BERTH_CANCEL, C_BERTH_INTERPOSE]:
-            # The feed time is in milliseconds, but python takes timestamps in seconds
             timestamp = int(message["time"]) / 1000
-
             area_id = message["area_id"]
 
             if area_id not in ["Q1", "Q3"]:
                 continue
-            
+
             description = message.get("descr", "")
             from_berth = message.get("from", "")
             to_berth = message.get("to", "")
@@ -47,3 +94,9 @@ def print_td_frame(parsed_body):
                 uk_datetime.strftime("%Y-%m-%d %H:%M:%S"),
                 message_type, area_id, description, from_berth, to_berth,
             ))
+
+            # Insert into MySQL database
+            insert_into_db(uk_datetime, message_type, area_id, description, from_berth, to_berth)
+
+# Run table creation once
+create_table()
