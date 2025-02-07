@@ -21,9 +21,9 @@ S_SIGNALLING_REFRESH_FINISHED = "SH"
 # Database Configuration (Update with your credentials)
 DB_CONFIG = {
     "host": "localhost",  # Change to your MySQL server
-    "user": "your_user",
-    "password": "your_password",
-    "database": "train_data"
+    "user": "liam",
+    "password": "password",
+    "database": "td_database"
 }
 
 # Function to create a MySQL connection
@@ -42,7 +42,7 @@ def create_table():
     if conn:
         cursor = conn.cursor()
         cursor.execute("""
-        CREATE TABLE IF NOT EXISTS td_messages (
+        CREATE TABLE IF NOT EXISTS td_messages_Q1_Q3 (
             id INT AUTO_INCREMENT PRIMARY KEY,
             timestamp DATETIME,
             message_type VARCHAR(2),
