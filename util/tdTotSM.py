@@ -54,7 +54,7 @@ def create_table():
         try:
             cursor = conn.cursor()
             cursor.execute("""
-            CREATE TABLE IF NOT EXISTS td_messages_Q1_Q3 (
+            CREATE TABLE IF NOT EXISTS td_messages_totSM (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 timestamp DATETIME,
                 message_type VARCHAR(2),
@@ -65,7 +65,7 @@ def create_table():
             );
             """)
             conn.commit()
-            logger.info("Table `td_messages_Q1_Q3` ensured to exist.")
+            logger.info("Table `td_messages_totSM` ensured to exist.")
         except Error as e:
             logger.error(f"MySQL Table Creation Error: {e}")
         finally:
@@ -79,7 +79,7 @@ def insert_into_db(timestamp, message_type, area_id, description, from_berth, to
         try:
             cursor = conn.cursor()
             query = """
-            INSERT INTO td_messages_Q1_Q3 (timestamp, message_type, area_id, description, from_berth, to_berth)
+            INSERT INTO td_messages_totSM (timestamp, message_type, area_id, description, from_berth, to_berth)
             VALUES (%s, %s, %s, %s, %s, %s);
             """
             cursor.execute(query, (timestamp, message_type, area_id, description, from_berth, to_berth))
@@ -101,7 +101,7 @@ def print_td_frame(parsed_body):
             timestamp = int(message["time"]) / 1000
             area_id = message["area_id"]
 
-            if area_id not in ["Q1", "Q3"]:
+            if area_id not in ["Q1", "Q3", "Q4"]:
                 logger.debug(f"Ignored message from area {area_id}.")
                 continue
 
