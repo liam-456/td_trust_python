@@ -19,13 +19,13 @@ parser.add_argument("-d", "--durable", action='store_true',
 action = parser.add_mutually_exclusive_group(required=False)
 action.add_argument('--td', action='store_true', help='Show messages from TD feed', default=True)
 action.add_argument('--trust', action='store_true', help='Show messages from TRUST feed')
-action.add_argument('--tdQ1Q3', action='store_true', help='Use filtered TD feed for Q1 and Q3')
+action.add_argument('--tdTotSM', action='store_true', help='Use filtered TD feed for Q1 and Q3')
 
 args = parser.parse_args()
 
-# Import tdQ1Q3.py if --tdQ1Q3 is used
-if args.tdQ1Q3:
-    from util import tdQ1Q3 as td  # Override td module
+# Import tdTotSM.py if --tdTotSM is used
+if args.tdTotSM:
+    from util import tdTotSM as td  # Override td module
 
 class Listener(stomp.ConnectionListener):
     _mq: stomp.Connection
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     topic = None
     if args.trust:
         topic = "/topic/TRAIN_MVT_ALL_TOC"
-    elif args.td or args.tdQ1Q3:
+    elif args.td or args.tdTotSM:
         topic = "/topic/TD_ALL_SIG_AREA"
 
     # Subscription
