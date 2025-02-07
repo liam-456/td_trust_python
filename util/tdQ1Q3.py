@@ -92,7 +92,7 @@ def insert_into_db(timestamp, message_type, area_id, description, from_berth, to
             conn.close()
 
 # Function to process and export TD messages
-def process_td_messages_Q1_Q3(parsed_body):
+def print_td_frame(parsed_body):
     for outer_message in parsed_body:
         message = list(outer_message.values())[0]
         message_type = message["msg_type"]
