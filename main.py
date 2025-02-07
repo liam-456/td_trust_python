@@ -9,8 +9,23 @@ from time import sleep
 import stomp
 
 # Internal
-from util import td, trust
+from util import trust
+from util import td  # Default to td.py
 
+# Argument parser setup
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--durable", action='store_true',
+                    help="Request a durable subscription. Note README before trying this.")
+action = parser.add_mutually_exclusive_group(required=False)
+action.add_argument('--td', action='store_true', help='Show messages from TD feed', default=True)
+action.add_argument('--trust', action='store_true', help='Show messages from TRUST feed')
+action.add_argument('--tdQ1Q3', action='store_true', help='Use filtered TD feed for Q1 and Q3')
+
+args = parser.parse_args()
+
+# Import tdQ1Q3.py if --tdQ1Q3 is used
+if args.tdQ1Q3:
+    from util import tdQ1Q3 as td  # Override td module
 
 class Listener(stomp.ConnectionListener):
     _mq: stomp.Connection
@@ -30,7 +45,7 @@ class Listener(stomp.ConnectionListener):
         if "TRAIN_MVT_" in headers["destination"]:
             trust.print_trust_frame(parsed_body)
         elif "TD_" in headers["destination"]:
-            td.print_td_frame(parsed_body)
+            td.print_td_frame(parsed_body)  # Uses the correct module
         else:
             print("Unknown destination: ", headers["destination"])
 
@@ -45,28 +60,16 @@ if __name__ == "__main__":
     with open("secrets.json") as f:
         feed_username, feed_password = json.load(f)
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--durable", action='store_true',
-                        help="Request a durable subscription. Note README before trying this.")
-    action = parser.add_mutually_exclusive_group(required=False)
-    action.add_argument('--td', action='store_true', help='Show messages from TD feed', default=True)
-    action.add_argument('--trust', action='store_true', help='Show messages from TRUST feed')
-
-    args = parser.parse_args()
-
-    # https://stomp.github.io/stomp-specification-1.2.html#Heart-beating
-    # We're committing to sending and accepting heartbeats every 5000ms
+    # STOMP connection setup
     connection = stomp.Connection([('publicdatafeeds.networkrail.co.uk', 61618)], keepalive=True, heartbeats=(5000, 5000))
-    connection.set_listener('', Listener(connection))
+    connection.set_listener('', Listener(connection, durable=args.durable))
 
-    # Connect to feed
     connect_headers = {
         "username": feed_username,
         "passcode": feed_password,
         "wait": True,
-        }
+    }
     if args.durable:
-        # The client-id header is part of the durable subscription - it should be unique to your account
         connect_headers["client-id"] = feed_username
 
     connection.connect(**connect_headers)
@@ -75,7 +78,7 @@ if __name__ == "__main__":
     topic = None
     if args.trust:
         topic = "/topic/TRAIN_MVT_ALL_TOC"
-    elif args.td:
+    elif args.td or args.tdQ1Q3:
         topic = "/topic/TD_ALL_SIG_AREA"
 
     # Subscription
@@ -84,11 +87,10 @@ if __name__ == "__main__":
         "id": 1,
     }
     if args.durable:
-        # Note that the subscription name should be unique both per connection and per queue
         subscribe_headers.update({
             "activemq.subscriptionName": feed_username + topic,
             "ack": "client-individual"
-            })
+        })
     else:
         subscribe_headers["ack"] = "auto"
 
