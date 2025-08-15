@@ -28,7 +28,7 @@ parser.add_argument(
     "--namedArea",
     type=str,
     help="Filter TD messages by named area",
-    default="central"
+    default="all"
 )
 
 args = parser.parse_args()
@@ -36,8 +36,8 @@ args = parser.parse_args()
 # Validate named area
 named_area = args.namedArea.lower()
 if named_area not in NAMED_AREAS:
-    print(f"Warning: Unknown named area '{args.namedArea}'. Defaulting to 'central'.")
-    named_area = "central"
+    print(f"Warning: Unknown named area '{args.namedArea}'. Defaulting to 'all'.")
+    named_area = "all"
 
 # Import appropriate TD module and set area filter
 if args.tdSQL:
