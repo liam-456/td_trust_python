@@ -4,6 +4,7 @@ from datetime import datetime
 import mysql.connector
 from mysql.connector import Error
 from pytz import timezone
+from util.area_config import NAMED_AREAS
 
 # Configure logging
 log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -72,6 +73,12 @@ def create_table():
             cursor.close()
             conn.close()
 
+SELECTED_AREA_IDS = []
+
+def set_named_area(named_area):
+    global SELECTED_AREA_IDS
+    SELECTED_AREA_IDS = NAMED_AREAS.get(named_area.lower(), [])
+
 # Function to insert data into the database
 def insert_into_db(timestamp, message_type, area_id, description, from_berth, to_berth):
     conn = create_connection()
@@ -101,7 +108,7 @@ def print_td_frame(parsed_body):
             timestamp = int(message["time"]) / 1000
             area_id = message["area_id"]
 
-            if area_id not in ["Q1", "Q3", "Q4"]:
+            if SELECTED_AREA_IDS and area_id not in SELECTED_AREA_IDS:
                 logger.debug(f"Ignored message from area {area_id}.")
                 continue
 
