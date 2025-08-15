@@ -1,0 +1,14 @@
+[Unit]
+Description=Train Describer Processor Service
+After=network.target
+
+[Service]
+ExecStart=/home/openraildata/td_trust_python/venv/bin/python3 /home/openraildata/td_trust_python/main.py --tdTotSM
+WorkingDirectory=/home/openraildata/td_trust_python/
+Restart=always
+User=openraildata
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
