@@ -9,6 +9,7 @@ SELECTED_AREA_IDS = []
 def set_named_area(named_area):
     global SELECTED_AREA_IDS
     SELECTED_AREA_IDS = NAMED_AREAS.get(named_area.lower(), [])
+    print(f"Filtering for area IDs: {SELECTED_AREA_IDS}")
 
 
 # Third party
