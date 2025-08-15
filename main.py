@@ -34,7 +34,7 @@ parser.add_argument("-a",
 args = parser.parse_args()
 
 # Validate named area
-named_area = args.namedArea.lower()
+named_area = args.area.lower()
 if named_area not in NAMED_AREAS:
     print(f"Warning: Unknown named area '{args.namedArea}'. Defaulting to 'all'.")
     named_area = "all"
