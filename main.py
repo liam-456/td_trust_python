@@ -20,9 +20,9 @@ parser.add_argument(
 )
 
 action = parser.add_mutually_exclusive_group(required=False)
-action.add_argument('--td', action='store_true', help='Show messages from TD feed', default=True)
+action.add_argument('--td', action='store_true', help='Show messages from TD feed (include selected area)', default=True)
 action.add_argument('--trust', action='store_true', help='Show messages from TRUST feed')
-action.add_argument('--tdTotSM', action='store_true', help='Use filtered TD feed for Q1 and Q3')
+action.add_argument('--tdSQL', action='store_true', help='Write TD messages to MySQL database')
 
 parser.add_argument(
     "--namedArea",
@@ -40,7 +40,7 @@ if named_area not in NAMED_AREAS:
     named_area = "central"
 
 # Import appropriate TD module and set area filter
-if args.tdTotSM:
+if args.tdSQL:
     from util import tdSQL as td  # tdSQL is the renamed tdTotSM
 else:
     from util import td
