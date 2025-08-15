@@ -89,6 +89,7 @@ def create_table():
 # Function to insert data into the database
 def insert_into_db(timestamp, message_type, area_id, description, from_berth, to_berth):
     conn = create_connection()
+    table_name = get_table_name()
     if conn:
         try:
             cursor = conn.cursor()
