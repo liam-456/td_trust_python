@@ -4,7 +4,7 @@ from datetime import datetime
 import mysql.connector
 from mysql.connector import Error
 from pytz import timezone
-from util.area_config import NAMED_AREAS
+# from util.area_config import NAMED_AREAS
 
 # Configure logging
 log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -42,6 +42,7 @@ SELECTED_AREA_IDS = []
 
 def set_named_area(named_area):
     global SELECTED_AREA_IDS, TABLE_SUFFIX
+    from util.area_config import NAMED_AREAS
     SELECTED_AREA_IDS = NAMED_AREAS.get(named_area.lower(), [])
     TABLE_SUFFIX = named_area.lower().replace("-", "_")  # sanitise for SQL
 
@@ -65,6 +66,7 @@ def create_table():
     if conn:
         try:
             cursor = conn.cursor()
+            table_name = get_table_name()
             cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS {table_name} (
                 id INT AUTO_INCREMENT PRIMARY KEY,
