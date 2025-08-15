@@ -16,16 +16,23 @@ from util import td  # Default to td.py
 parser = argparse.ArgumentParser()
 parser.add_argument("-d", "--durable", action='store_true',
                     help="Request a durable subscription. Note README before trying this.")
+parser.add_argument(
+    "--namedArea",
+    type=str,
+    help="Filter TD messages by named area (e.g. central, east, all)",
+    default="all"
+)
 action = parser.add_mutually_exclusive_group(required=False)
 action.add_argument('--td', action='store_true', help='Show messages from TD feed', default=True)
 action.add_argument('--trust', action='store_true', help='Show messages from TRUST feed')
-action.add_argument('--tdTotSM', action='store_true', help='Use filtered TD feed for Q1 and Q3')
+action.add_argument('--tdSQL', action='store_true', help='Use updated TD feed code to add to MySQL database')
 
 args = parser.parse_args()
 
 # Import tdTotSM.py if --tdTotSM is used
-if args.tdTotSM:
-    from util import tdTotSM as td  # Override td module
+if args.tdSQL:
+    from util import tdSQL as td  # Override td module
+    td.set_named_area(args.namedArea)
 
 class Listener(stomp.ConnectionListener):
     _mq: stomp.Connection
