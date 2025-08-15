@@ -11,30 +11,43 @@ import stomp
 # Internal
 from util import trust
 from util.area_config import NAMED_AREAS
-from util import td  # Default to td.py
 
 # Argument parser setup
 parser = argparse.ArgumentParser()
-parser.add_argument("-d", "--durable", action='store_true',
-                    help="Request a durable subscription. Note README before trying this.")
 parser.add_argument(
-    "--namedArea",
-    type=str,
-    help="Filter TD messages by named area (e.g. central, east, all)",
-    default="all"
+    "-d", "--durable", action='store_true',
+    help="Request a durable subscription. Note README before trying this."
 )
+
 action = parser.add_mutually_exclusive_group(required=False)
 action.add_argument('--td', action='store_true', help='Show messages from TD feed', default=True)
 action.add_argument('--trust', action='store_true', help='Show messages from TRUST feed')
-action.add_argument('--tdSQL', action='store_true', help='Use updated TD feed code to add to MySQL database')
+action.add_argument('--tdTotSM', action='store_true', help='Use filtered TD feed for Q1 and Q3')
+
+parser.add_argument(
+    "--namedArea",
+    type=str,
+    help="Filter TD messages by named area (e.g. central, east, thameslink_core)",
+    default="central"
+)
 
 args = parser.parse_args()
 
-# Import tdSQL.py if --tdSQL is used
-if args.tdSQL:
-    from util import tdSQL as td  # Override td module
-    td.set_named_area(args.namedArea)
+# Validate named area
+named_area = args.namedArea.lower()
+if named_area not in NAMED_AREAS:
+    print(f"Warning: Unknown named area '{args.namedArea}'. Defaulting to 'central'.")
+    named_area = "central"
 
+# Import appropriate TD module and set area filter
+if args.tdTotSM:
+    from util import tdSQL as td  # tdSQL is the renamed tdTotSM
+else:
+    from util import td
+
+td.set_named_area(named_area)
+
+# Listener class
 class Listener(stomp.ConnectionListener):
     _mq: stomp.Connection
 
@@ -47,29 +60,31 @@ class Listener(stomp.ConnectionListener):
         parsed_body = json.loads(message_raw)
 
         if self.is_durable:
-            # Acknowledging messages is important in client-individual mode
             self._mq.ack(id=headers["ack"], subscription=headers["subscription"])
 
         if "TRAIN_MVT_" in headers["destination"]:
             trust.print_trust_frame(parsed_body)
         elif "TD_" in headers["destination"]:
-            td.print_td_frame(parsed_body)  # Uses the correct module
+            td.print_td_frame(parsed_body)
         else:
             print("Unknown destination: ", headers["destination"])
 
     def on_error(self, frame):
-        print('received an error {}'.format(frame.body))
+        print('Received an error:', frame.body)
 
     def on_disconnected(self):
-        print('disconnected')
+        print('Disconnected from feed.')
 
-
+# Main execution
 if __name__ == "__main__":
     with open("secrets.json") as f:
         feed_username, feed_password = json.load(f)
 
-    # STOMP connection setup
-    connection = stomp.Connection([('publicdatafeeds.networkrail.co.uk', 61618)], keepalive=True, heartbeats=(5000, 5000))
+    connection = stomp.Connection(
+        [("publicdatafeeds.networkrail.co.uk", 61618)],
+        keepalive=True,
+        heartbeats=(5000, 5000)
+    )
     connection.set_listener('', Listener(connection, durable=args.durable))
 
     connect_headers = {
@@ -77,23 +92,25 @@ if __name__ == "__main__":
         "passcode": feed_password,
         "wait": True,
     }
+
     if args.durable:
         connect_headers["client-id"] = feed_username
 
     connection.connect(**connect_headers)
 
-    # Determine topic to subscribe
+    # Determine topic
     topic = None
     if args.trust:
         topic = "/topic/TRAIN_MVT_ALL_TOC"
     elif args.td or args.tdTotSM:
         topic = "/topic/TD_ALL_SIG_AREA"
 
-    # Subscription
+    # Subscription headers
     subscribe_headers = {
         "destination": topic,
         "id": 1,
     }
+
     if args.durable:
         subscribe_headers.update({
             "activemq.subscriptionName": feed_username + topic,
