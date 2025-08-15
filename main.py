@@ -46,6 +46,7 @@ else:
     from util import td
 
 td.set_named_area(named_area)
+td.create_table()
 
 # Listener class
 class Listener(stomp.ConnectionListener):
