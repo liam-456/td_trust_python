@@ -24,8 +24,8 @@ action.add_argument('--td', action='store_true', help='Show messages from TD fee
 action.add_argument('--trust', action='store_true', help='Show messages from TRUST feed')
 action.add_argument('--tdSQL', action='store_true', help='Write TD messages to MySQL database')
 
-parser.add_argument(
-    "--namedArea",
+parser.add_argument("-a",
+    "--area",
     type=str,
     help="Filter TD messages by named area",
     default="all"
