@@ -62,6 +62,7 @@ def create_connection():
 
 # Function to create the table if it does not exist
 def create_table():
+    print(f"Creating table: {get_table_name()}")
     conn = create_connection()
     if conn:
         try:
