@@ -1,6 +1,16 @@
 # Python standard
 from datetime import datetime
 
+# area filter
+from util.area_config import NAMED_AREAS
+
+SELECTED_AREA_IDS = []
+
+def set_named_area(named_area):
+    global SELECTED_AREA_IDS
+    SELECTED_AREA_IDS = NAMED_AREAS.get(named_area.lower(), [])
+
+
 # Third party
 from pytz import timezone
 
@@ -31,7 +41,11 @@ def print_td_frame(parsed_body):
             # The feed time is in milliseconds, but python takes timestamps in seconds
             timestamp = int(message["time"]) / 1000
 
-            area_id = message["area_id"]
+            area_id = message["area_id"]            
+
+            if SELECTED_AREA_IDS and area_id not in SELECTED_AREA_IDS:
+                continue
+
             description = message.get("descr", "")
             from_berth = message.get("from", "")
             to_berth = message.get("to", "")
