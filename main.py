@@ -10,6 +10,7 @@ import stomp
 
 # Internal
 from util import trust
+from util.area_config import NAMED_AREAS
 from util import td  # Default to td.py
 
 # Argument parser setup
@@ -29,7 +30,7 @@ action.add_argument('--tdSQL', action='store_true', help='Use updated TD feed co
 
 args = parser.parse_args()
 
-# Import tdTotSM.py if --tdTotSM is used
+# Import tdSQL.py if --tdSQL is used
 if args.tdSQL:
     from util import tdSQL as td  # Override td module
     td.set_named_area(args.namedArea)
