@@ -37,6 +37,17 @@ DB_CONFIG = {
     "database": "td_database"
 }
 
+TABLE_SUFFIX = "all"
+SELECTED_AREA_IDS = []
+
+def set_named_area(named_area):
+    global SELECTED_AREA_IDS, TABLE_SUFFIX
+    SELECTED_AREA_IDS = NAMED_AREAS.get(named_area.lower(), [])
+    TABLE_SUFFIX = named_area.lower().replace("-", "_")  # sanitise for SQL
+
+def get_table_name():
+    return f"td_msg_{TABLE_SUFFIX}"
+
 # Function to create a MySQL connection
 def create_connection():
     try:
@@ -54,8 +65,8 @@ def create_table():
     if conn:
         try:
             cursor = conn.cursor()
-            cursor.execute("""
-            CREATE TABLE IF NOT EXISTS td_messages_totSM (
+            cursor.execute(f"""
+            CREATE TABLE IF NOT EXISTS {table_name} (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 timestamp DATETIME,
                 message_type VARCHAR(2),
@@ -66,18 +77,12 @@ def create_table():
             );
             """)
             conn.commit()
-            logger.info("Table `td_messages_totSM` ensured to exist.")
+            logger.info(f"Table `{table_name}` ensured to exist.")
         except Error as e:
             logger.error(f"MySQL Table Creation Error: {e}")
         finally:
             cursor.close()
             conn.close()
-
-SELECTED_AREA_IDS = []
-
-def set_named_area(named_area):
-    global SELECTED_AREA_IDS
-    SELECTED_AREA_IDS = NAMED_AREAS.get(named_area.lower(), [])
 
 # Function to insert data into the database
 def insert_into_db(timestamp, message_type, area_id, description, from_berth, to_berth):
@@ -85,13 +90,13 @@ def insert_into_db(timestamp, message_type, area_id, description, from_berth, to
     if conn:
         try:
             cursor = conn.cursor()
-            query = """
-            INSERT INTO td_messages_totSM (timestamp, message_type, area_id, description, from_berth, to_berth)
+            query = f"""
+            INSERT INTO {table_name} (timestamp, message_type, area_id, description, from_berth, to_berth)
             VALUES (%s, %s, %s, %s, %s, %s);
             """
             cursor.execute(query, (timestamp, message_type, area_id, description, from_berth, to_berth))
             conn.commit()
-            logger.info(f"Inserted TD message: {timestamp}, {message_type}, {area_id}, {description}, {from_berth}, {to_berth}")
+            logger.info(f"Inserted TD message into `{table_name}`: {timestamp}, {message_type}, {area_id}, {description}, {from_berth}, {to_berth}")
         except Error as e:
             logger.error(f"MySQL Insert Error: {e}")
         finally:
