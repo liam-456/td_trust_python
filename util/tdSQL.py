@@ -135,4 +135,4 @@ def print_td_frame(parsed_body):
             insert_into_db(uk_datetime, message_type, area_id, description, from_berth, to_berth)
 
 # Run table creation once
-create_table()
+# create_table()
