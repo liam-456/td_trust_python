@@ -1,4 +1,3 @@
-
 NAMED_AREAS = {
     "tottenham": ["Q1", "Q3", "Q4"],
     "thameslink_core": ["X0"],
