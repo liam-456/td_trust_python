@@ -32,7 +32,7 @@ S_SIGNALLING_REFRESH_FINISHED = "SH"
 # Database Configuration (Update with your credentials)
 DB_CONFIG = {
     "host": "localhost",  # Change to your MySQL server
-    "user": "liam",
+    "user": "networkrail",
     "password": "password",
     "database": "td_database"
 }
