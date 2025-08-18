@@ -41,7 +41,7 @@ if named_area not in NAMED_AREAS:
 
 # Import appropriate TD module and set area filter
 
-if args.tdTotSM:
+if args.tdSQL:
     from util import tdSQL as td
     td.set_named_area(named_area)
     td.create_table()  # ✅ Only tdSQL has this
