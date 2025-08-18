@@ -40,13 +40,15 @@ if named_area not in NAMED_AREAS:
     named_area = "all"
 
 # Import appropriate TD module and set area filter
-if args.tdSQL:
+
+if args.tdTotSM:
     from util import tdSQL as td
+    td.set_named_area(named_area)
+    td.create_table()  # ✅ Only tdSQL has this
 else:
     from util import td
+    td.set_named_area(named_area)
 
-td.set_named_area(named_area)
-td.create_table()
 
 # Listener class
 class Listener(stomp.ConnectionListener):
