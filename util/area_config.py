@@ -3,5 +3,6 @@ NAMED_AREAS = {
     "thameslink_core": ["X0"],
     "ecml_south": ["Y9", "Y8"],
     "nll": ["AW", "Q7", "WI", "XA"],
+    "acton": ["AW", "DA"],
     "all": []  # Special case to include all areas
 }
